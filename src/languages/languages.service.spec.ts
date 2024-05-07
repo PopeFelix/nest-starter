@@ -4,7 +4,7 @@ import { Language } from './entities/language.entity';
 import { CreateLanguageInput } from './dto/create-language.input';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('LanguagesService', () => {
   let service: LanguagesService;
@@ -68,6 +68,14 @@ describe('LanguagesService', () => {
     expect(spy).toHaveBeenCalledWith({ where: { language_id: l.language_id } });
   });
 
+  it('Throws an error when no language is registered with a given ID', async () => {
+    const l: Language = { language_id: 10, name: 'Quuxish' };
+    jest.spyOn(repo, 'findOne').mockResolvedValueOnce(undefined);
+    await expect(service.findOne(l.language_id)).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+  });
+
   it('Can find a language by name', async () => {
     const l: Language = { language_id: 2, name: 'Quuyish' };
     const spy = jest.spyOn(repo, 'find').mockResolvedValueOnce([l]);
@@ -93,6 +101,23 @@ describe('LanguagesService', () => {
     });
   });
 
+  it('Throws an error when trying to update a language that is not registered', async () => {
+    const l: Language = { language_id: 30, name: 'Quuzish' };
+    const newName = 'Bazish';
+    const findOneSpy = jest
+      .spyOn(repo, 'findOne')
+      .mockResolvedValueOnce(undefined);
+
+    const updateSpy = jest.spyOn(repo, 'update').mockResolvedValue(undefined);
+    await expect(
+      service.update(l.language_id, { ...l, name: newName }),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(updateSpy).not.toHaveBeenCalled();
+    expect(findOneSpy).toHaveBeenCalledWith({
+      where: { language_id: l.language_id },
+    });
+  });
+
   it('Can delete a language', async () => {
     const language_id = 4;
     const findOneSpy = jest
@@ -106,5 +131,21 @@ describe('LanguagesService', () => {
     await expect(service.remove(language_id)).resolves.not.toThrow();
     expect(findOneSpy).toHaveBeenCalledWith({ where: { language_id } });
     expect(deleteSpy).toHaveBeenCalledWith(language_id);
+  });
+
+  it('throws an error when trying to delete a language that is not registered', async () => {
+    const language_id = 40;
+    const findOneSpy = jest
+      .spyOn(repo, 'findOne')
+      .mockResolvedValueOnce(undefined);
+
+    const deleteSpy = jest
+      .spyOn(repo, 'delete')
+      .mockResolvedValueOnce(undefined);
+    await expect(service.remove(language_id)).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+    expect(findOneSpy).toHaveBeenCalledWith({ where: { language_id } });
+    expect(deleteSpy).not.toHaveBeenCalled();
   });
 });
