@@ -1,43 +1,42 @@
-import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@ObjectType({ description: 'A film available for rental' })
+@Entity()
 export class Movie {
-  @Field(() => Int, { description: 'Unique ID of this film' })
+  @PrimaryGeneratedColumn()
   film_id: number;
 
-  @Field(() => String, { description: 'Title of the film' })
+  @Column()
   title: string;
 
-  @Field(() => String, { description: 'Year the film was released' })
+  @Column()
   release_year: string;
 
-  @Field(() => String, { description: 'Primary language of the film' })
-  language: string;
+  @Column() // This is a many to one relation on the "language" table
+  language_id: number;
 
-  @Field(() => String, {
+  @Column({
+    // This is a many to one relation on the "language" table
     nullable: true,
-    description: 'Original language of the film (if applicable)',
   })
-  original_language: string;
+  original_language_id: number;
 
-  @Field(() => Float, { description: 'Rental duration for this film' })
+  @Column()
   rental_duration: number;
 
-  @Field(() => Float, { description: 'Cost to rent this film' })
+  @Column()
   rental_rate: number;
 
-  @Field(() => Int, { description: 'Length (in minutes) of the film' })
+  @Column()
   length: number;
 
-  @Field(() => Float, { description: 'Cost to replace this film' })
+  @Column()
   replacement_cost: number;
 
-  @Field(() => String, { description: 'MPAA Rating of the film' })
+  @Column()
   rating: string;
 
-  @Field(() => String, {
+  @Column({
     nullable: true,
-    description: 'Special features included with tis film',
   })
   special_features: string;
 }
