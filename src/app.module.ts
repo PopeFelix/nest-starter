@@ -15,7 +15,7 @@ import databaseConfig from 'config/database.config';
     LanguagesModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: join('process.cwd', '/schema.gql'),
+      autoSchemaFile: join(process.cwd(), '/schema.gql'),
       sortSchema: true,
       playground: true,
     }),
