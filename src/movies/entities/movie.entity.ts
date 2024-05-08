@@ -39,4 +39,11 @@ export class Movie {
     nullable: true,
   })
   special_features: string;
+
+  // This is automatically updated by the DB, but
+  // the DB will throw an error if it's not present
+  @Column({
+    default: 0,
+  })
+  last_update: number;
 }
