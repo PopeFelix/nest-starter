@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Language } from 'src/languages/entities/language.entity';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 
 @Entity()
 export class Movie {
@@ -8,17 +15,28 @@ export class Movie {
   @Column()
   title: string;
 
-  @Column()
+  @Column({ nullable: true })
+  description: string;
+
+  @Column({ nullable: true })
   release_year: string;
 
   @Column() // This is a many to one relation on the "language" table
   language_id: number;
+
+  @ManyToOne(() => Language, (l) => l.language_id)
+  @JoinColumn({ name: 'language_id' })
+  language: Language;
 
   @Column({
     // This is a many to one relation on the "language" table
     nullable: true,
   })
   original_language_id: number;
+
+  @ManyToOne(() => Language, (l) => l.language_id)
+  @JoinColumn({ name: 'original_language_id' })
+  original_language: Language;
 
   @Column()
   rental_duration: number;
@@ -32,7 +50,7 @@ export class Movie {
   @Column()
   replacement_cost: number;
 
-  @Column()
+  @Column({ nullable: true, default: 'G' })
   rating: string;
 
   @Column({

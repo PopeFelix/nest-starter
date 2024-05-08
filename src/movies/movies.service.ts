@@ -1,10 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateMovieInput } from './dto/create-movie.input';
 import { UpdateMovieInput } from './dto/update-movie.input';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Movie } from './entities/movie.entity';
 import { Repository } from 'typeorm';
-import { LanguagesService } from 'src/languages/languages.service';
+import { LanguagesService } from '../languages/languages.service';
 
 @Injectable()
 export class MoviesService {
@@ -46,27 +50,64 @@ export class MoviesService {
   }
 
   private async getLanguageId(name: string) {
-    const lang = await this.languages.find({ name });
+    const lang = (await this.languages.find({ name })) || [];
     if (lang.length) {
       return lang[0].language_id;
     } else {
-      return null;
+      throw new BadRequestException(`Language "${name}" is not registered`);
     }
   }
   async findAll() {
-    return await this.repo.find();
+    return await this.repo.find({
+      relations: {
+        language: true,
+        original_language: true,
+      },
+    });
   }
 
   async findOne(film_id: number) {
-    return await this.repo.findOne({ where: { film_id } });
+    const movie = await this.repo.findOne({
+      where: { film_id },
+      relations: {
+        language: true,
+        original_language: true,
+      },
+    });
+    if (!movie) {
+      throw new NotFoundException('Movie not found');
+    }
+    console.debug('Found movie', movie);
+    return movie;
   }
 
-  async search(where: Partial<Movie>) {
-    return await this.repo.find({ where });
+  async find(where: Partial<Movie>) {
+    return await this.repo.find({
+      where,
+      relations: {
+        language: true,
+        original_language: true,
+      },
+    });
   }
 
   async update(film_id: number, updateMovieInput: UpdateMovieInput) {
-    const movie = updateMovieInput as Partial<Movie>;
+    const movie: Partial<Movie> = {
+      ...updateMovieInput,
+      language: null,
+      original_language: null,
+    };
+    try {
+      await this.findOne(film_id);
+    } catch (e) {
+      if (e instanceof NotFoundException) {
+        console.log(`Movie ${film_id} not found`);
+      } else {
+        console.error(`Error retrieving movie ${film_id}`, e);
+      }
+      throw e;
+    }
+
     if (updateMovieInput.language) {
       const language_id = await this.getLanguageId(updateMovieInput.language);
       movie.language_id = language_id;

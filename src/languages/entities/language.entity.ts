@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Movie } from 'src/movies/entities/movie.entity';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 
 @Entity()
 export class Language {
@@ -12,4 +13,7 @@ export class Language {
   // the DB will throw an error if it's not present
   @Column({ default: 0 })
   last_update: number;
+
+  @OneToMany(() => Movie, (movie) => movie.language_id)
+  movies: Movie[];
 }

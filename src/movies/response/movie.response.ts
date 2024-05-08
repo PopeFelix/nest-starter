@@ -8,17 +8,26 @@ export class Movie {
   @Field(() => String, { description: 'Title of the film' })
   title: string;
 
-  @Field(() => String, { description: 'Year the film was released' })
-  release_year: string;
-
-  @Field(() => String, { description: 'Primary language of the film' })
-  language: string;
+  @Field(() => String, {
+    description: 'Description of the film',
+    nullable: true,
+  })
+  description: string;
 
   @Field(() => String, {
+    description: 'Year the film was released',
     nullable: true,
-    description: 'Original language of the film (if applicable)',
   })
-  original_language: string;
+  release_year: string;
+
+  @Field(() => Int, { description: 'ID of primary language of the film' })
+  language_id: number;
+
+  @Field(() => Int, {
+    nullable: true,
+    description: 'ID of original language of the film (if applicable)',
+  })
+  original_language_id: number;
 
   @Field(() => Float, { description: 'Rental duration for this film' })
   rental_duration: number;
@@ -26,13 +35,19 @@ export class Movie {
   @Field(() => Float, { description: 'Cost to rent this film' })
   rental_rate: number;
 
-  @Field(() => Int, { description: 'Length (in minutes) of the film' })
+  @Field(() => Int, {
+    description: 'Length (in minutes) of the film',
+    nullable: true,
+  })
   length: number;
 
   @Field(() => Float, { description: 'Cost to replace this film' })
   replacement_cost: number;
 
-  @Field(() => String, { description: 'MPAA Rating of the film' })
+  @Field(() => String, {
+    description: 'MPAA Rating of the film',
+    nullable: true,
+  })
   rating: string;
 
   @Field(() => String, {
