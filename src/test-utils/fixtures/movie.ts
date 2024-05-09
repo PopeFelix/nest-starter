@@ -1,0 +1,58 @@
+import { Movie } from '../../movies/entities/movie.entity';
+import { languages } from './language';
+
+export const movies: Movie[] = [
+  {
+    film_id: 1,
+    title: 'Test Movie',
+    description: 'A thrilling adventure through the world of unit testing',
+    rating: 'G',
+    language_id: languages[0].language_id,
+    language: languages[0],
+    last_update: Date.now(),
+    original_language: languages[1],
+    original_language_id: languages[1].language_id,
+    length: 120,
+    release_year: '2024',
+    rental_duration: 3,
+    rental_rate: 2.99,
+    replacement_cost: 29.99,
+    special_features: null,
+  },
+  {
+    film_id: 2,
+    title: 'Test Movie II: Test Harder',
+    description:
+      'Another thrilling adventure through the world of unit testing',
+    rating: 'G',
+    language_id: languages[0].language_id,
+    language: languages[0],
+    last_update: Date.now(),
+    original_language: null,
+    original_language_id: null,
+    length: 120,
+    release_year: '2024',
+    rental_duration: 3,
+    rental_rate: 2.99,
+    replacement_cost: 29.99,
+    special_features: null,
+  },
+  {
+    film_id: 3,
+    title: 'Test Movie III: Did We Really Need Another Sequel?',
+    description:
+      'Yet another adventure through the world of unit testing. Not exactly thrilling, but moderately exciting',
+    rating: 'G',
+    language_id: languages[0].language_id,
+    language: languages[0],
+    last_update: Date.now(),
+    original_language: null,
+    original_language_id: null,
+    length: 120,
+    release_year: '2024',
+    rental_duration: 3,
+    rental_rate: 2.99,
+    replacement_cost: 29.99,
+    special_features: null,
+  },
+];

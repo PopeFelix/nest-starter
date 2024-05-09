@@ -10,31 +10,7 @@ export class MoviesService {
   constructor(@InjectRepository(Movie) private repo: Repository<Movie>) {}
 
   async create(createMovieInput: CreateMovieInput) {
-    const {
-      length,
-      rating,
-      release_year,
-      rental_duration,
-      replacement_cost,
-      rental_rate,
-      special_features,
-      title,
-      language_id,
-      original_language_id,
-    } = createMovieInput;
-
-    const movie = this.repo.create({
-      length,
-      rating,
-      release_year,
-      rental_duration,
-      replacement_cost,
-      rental_rate,
-      special_features,
-      title,
-      language_id,
-      original_language_id,
-    });
+    const movie = this.repo.create(createMovieInput);
     const res = await this.repo.save(movie);
     return res;
   }

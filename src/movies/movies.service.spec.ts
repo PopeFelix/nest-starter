@@ -6,42 +6,44 @@ import { Repository } from 'typeorm';
 import { Movie } from './entities/movie.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { UpdateMovieInput } from './dto/update-movie.input';
+import { TypeOrmSqliteTestingModule } from '../test-utils/testdb';
+import { movies } from '../test-utils/fixtures/movie';
+import { languages } from '../test-utils/fixtures/language';
 
 describe('MoviesService', () => {
   let service: MoviesService;
+  let module: TestingModule;
+  let moviesRepo: Repository<Movie>;
+  let languagesRepo: Repository<Language>;
 
-  let repo: Repository<Movie>;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        MoviesService,
-        { provide: getRepositoryToken(Movie), useClass: Repository },
-      ],
+  beforeAll(async () => {
+    module = await Test.createTestingModule({
+      imports: [...TypeOrmSqliteTestingModule([Movie, Language])],
+      providers: [MoviesService],
     }).compile();
 
-    repo = module.get<Repository<Movie>>(getRepositoryToken(Movie));
+    moviesRepo = module.get<Repository<Movie>>(getRepositoryToken(Movie));
+    languagesRepo = module.get<Repository<Language>>(
+      getRepositoryToken(Language),
+    );
     service = module.get<MoviesService>(MoviesService);
+
+    await Promise.all(
+      languages.map(async (language) => await languagesRepo.insert(language)),
+    );
+    await Promise.all(
+      movies.map(async (movie) => await moviesRepo.insert(movie)),
+    );
   });
+  afterAll(() => module.close());
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
   it('can create a movie', async () => {
-    const film_id = 1;
-    const lang: Language = {
-      language_id: 1,
-      name: 'English',
-      last_update: 0,
-      movies: [],
-    };
-    const original_lang: Language = {
-      language_id: 10,
-      name: 'Barbazish',
-      last_update: 0,
-      movies: [],
-    };
+    const lang = languages[0];
+    const original_lang = languages[1];
     const movie: CreateMovieInput = {
       language_id: lang.language_id,
       description: 'A dummy movie',
@@ -55,53 +57,21 @@ describe('MoviesService', () => {
       special_features: null,
       original_language_id: original_lang.language_id,
     };
-    const createSpy = jest.spyOn(repo, 'create').mockReturnValue({
-      ...movie,
-      film_id,
-      language_id: lang.language_id,
-      original_language_id: original_lang.language_id,
-      last_update: 0,
-      language: lang,
-      original_language: original_lang,
-    });
-    const saveSpy = jest.spyOn(repo, 'save').mockResolvedValue({
-      ...movie,
-      film_id,
-      language_id: lang.language_id,
-      original_language_id: original_lang.language_id,
-      last_update: 0,
-      language: lang,
-      original_language: original_lang,
-    });
 
-    await expect(service.create(movie)).resolves.toBeTruthy();
-    expect(createSpy).toHaveBeenCalled();
-    expect(saveSpy).toHaveBeenCalledWith({
+    const ret = await service.create(movie);
+    console.debug('Create returned', ret);
+    expect(ret).toBeInstanceOf(Movie);
+    expect(ret).toEqual({
       ...movie,
-      film_id,
-      language_id: lang.language_id,
-      original_language_id: original_lang.language_id,
-      language: lang,
-      original_language: original_lang,
+      film_id: expect.any(Number),
       last_update: expect.any(Number),
     });
   });
 
   it('Can update a movie', async () => {
-    const lang: Language = {
-      language_id: 2,
-      name: 'Foobarese',
-      last_update: 0,
-      movies: [],
-    };
-    const original_lang: Language = {
-      language_id: 20,
-      name: 'Foobarish',
-      last_update: 0,
-      movies: [],
-    };
+    const lang = languages[0];
     const movie: UpdateMovieInput = {
-      film_id: 2,
+      film_id: movies[1].film_id,
       language_id: lang.language_id,
       length: 120,
       rating: 'R',
@@ -114,57 +84,22 @@ describe('MoviesService', () => {
       special_features: null,
       original_language_id: null,
     };
-    const findSpy = jest.spyOn(repo, 'findOne').mockResolvedValue({
-      ...movie,
-      language: lang,
-      original_language: original_lang,
-      last_update: Date.now(),
+    const ret = await service.update(movie.film_id, movie);
+    expect(ret).toBeTruthy();
+    expect(ret).toHaveProperty('affected', 1);
+    const updatedMovie = await service.findOne(movie.film_id);
+    Object.entries(movie).forEach(([key, value]) => {
+      expect(updatedMovie[key]).toEqual(value);
     });
-    const updateSpy = jest
-      .spyOn(repo, 'update')
-      .mockResolvedValueOnce({ generatedMaps: [], raw: '' });
-    await expect(service.update(movie.film_id, movie)).resolves.toBeTruthy();
-    expect(findSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { film_id: movie.film_id } }),
-    );
-    expect(updateSpy).toHaveBeenCalledWith(movie.film_id, movie);
   });
 
   it('Can find all movies', async () => {
-    const findSpy = jest.spyOn(repo, 'find').mockResolvedValueOnce([]);
-    await expect(service.findAll()).resolves.toBeTruthy();
-    expect(findSpy).toHaveBeenCalled();
+    const ret = await service.findAll();
+    expect(ret[0]).toBeInstanceOf(Movie);
   });
 
   it('Can find a movie by ID', async () => {
-    const lang: Language = {
-      language_id: 3,
-      name: 'Foobarish',
-      last_update: 0,
-      movies: [],
-    };
-
-    const film_id = 3;
-    const findSpy = jest.spyOn(repo, 'findOne').mockResolvedValueOnce({
-      film_id,
-      description: 'A movie about finding movies by ID',
-      title: 'Finding Movie By ID',
-      release_year: '2024',
-      language_id: lang.language_id,
-      original_language_id: null,
-      original_language: null,
-      language: lang,
-      last_update: Date.now(),
-      length: 90,
-      rating: 'Q',
-      rental_duration: 3,
-      rental_rate: 3.5,
-      replacement_cost: 29.99,
-      special_features: null,
-    });
-    await expect(service.findOne(film_id)).resolves.toBeTruthy();
-    expect(findSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { film_id } }),
-    );
+    const film_id = 1;
+    await expect(service.findOne(film_id)).resolves.toBeInstanceOf(Movie);
   });
 });

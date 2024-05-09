@@ -41,13 +41,13 @@ export class Movie {
   @Column()
   rental_duration: number;
 
-  @Column()
+  @Column({ type: 'float' })
   rental_rate: number;
 
   @Column()
   length: number;
 
-  @Column()
+  @Column({ type: 'float' })
   replacement_cost: number;
 
   @Column({ nullable: true, default: 'G' })
