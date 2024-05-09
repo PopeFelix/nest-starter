@@ -1,4 +1,4 @@
-import { Language } from 'src/languages/entities/language.entity';
+import { Language } from '../../languages/entities/language.entity';
 import {
   Entity,
   Column,
