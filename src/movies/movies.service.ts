@@ -1,21 +1,13 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateMovieInput } from './dto/create-movie.input';
 import { UpdateMovieInput } from './dto/update-movie.input';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Movie } from './entities/movie.entity';
 import { Repository } from 'typeorm';
-import { LanguagesService } from '../languages/languages.service';
 
 @Injectable()
 export class MoviesService {
-  constructor(
-    @InjectRepository(Movie) private repo: Repository<Movie>,
-    private languages: LanguagesService,
-  ) {}
+  constructor(@InjectRepository(Movie) private repo: Repository<Movie>) {}
 
   async create(createMovieInput: CreateMovieInput) {
     const {
@@ -27,12 +19,10 @@ export class MoviesService {
       rental_rate,
       special_features,
       title,
+      language_id,
+      original_language_id,
     } = createMovieInput;
 
-    const language_id = await this.getLanguageId(createMovieInput.language);
-    const original_language_id = await this.getLanguageId(
-      createMovieInput.original_language,
-    );
     const movie = this.repo.create({
       length,
       rating,
@@ -49,14 +39,6 @@ export class MoviesService {
     return res;
   }
 
-  private async getLanguageId(name: string) {
-    const lang = (await this.languages.find({ name })) || [];
-    if (lang.length) {
-      return lang[0].language_id;
-    } else {
-      throw new BadRequestException(`Language "${name}" is not registered`);
-    }
-  }
   async findAll() {
     return await this.repo.find({
       relations: {
@@ -94,8 +76,6 @@ export class MoviesService {
   async update(film_id: number, updateMovieInput: UpdateMovieInput) {
     const movie: Partial<Movie> = {
       ...updateMovieInput,
-      language: null,
-      original_language: null,
     };
     try {
       await this.findOne(film_id);
@@ -106,17 +86,6 @@ export class MoviesService {
         console.error(`Error retrieving movie ${film_id}`, e);
       }
       throw e;
-    }
-
-    if (updateMovieInput.language) {
-      const language_id = await this.getLanguageId(updateMovieInput.language);
-      movie.language_id = language_id;
-    }
-    if (updateMovieInput.original_language) {
-      const original_language_id = await this.getLanguageId(
-        updateMovieInput.original_language,
-      );
-      movie.original_language_id = original_language_id;
     }
 
     return await this.repo.update(film_id, movie);

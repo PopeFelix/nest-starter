@@ -14,14 +14,17 @@ export class UpdateMovieInput {
   @Length(4, 4)
   release_year: string;
 
-  @Field(() => String, { description: 'Primary language of the film' })
-  language: string;
+  @Field(() => String, { description: 'Description of the film' })
+  description: string;
 
-  @Field(() => String, {
+  @Field(() => Int, { description: 'ID of primary language of the film' })
+  language_id: number;
+
+  @Field(() => Int, {
     nullable: true,
-    description: 'Original language of the film (if applicable)',
+    description: 'ID of the original language of the film (if applicable)',
   })
-  original_language: string;
+  original_language_id: number;
 
   @Field(() => Float, { description: 'Rental duration for this film' })
   rental_duration: number;
